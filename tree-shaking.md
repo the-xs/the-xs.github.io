@@ -199,4 +199,51 @@ module.exports = {
 // turn on switch -p, the code is removed
 ```
 
+**Tree shaking with reference re-export**
+
+Suppose we have a module import the functions from another lib, and we export the functions which reference the lib. Let's check if the dead branches can be shaked off.
+
+
+```Javascript
+// ref-lib.js
+export const LIBA = () => {console.log('LIBA')};
+export const LIBB = () => {console.log('LIBB')};
+export const LIBC = () => {console.log('LIBC')};
+
+// ref-module.js
+import { LIBA } from './ref-lib';
+
+export const MX = () => LIBA(); //shake it off from index.js if it hasn't been used.
+
+export const MA = () => {console.log('MA')};
+export const MB = () => {console.log('MB')};
+
+// index-ref.js
+import { MA } from './ref-module';
+
+MA();
+
+```
+
+Here is the bundle snippet:
+
+```Javascript
+/* unused harmony export MB */
+
+
+var MX = function MX() {
+  return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__ref_lib__["a" /* LIBA */])();
+}; //shake it off
+
+var MA = function MA() {
+  console.log('MA');
+};
+var MB = function MB() {
+  console.log('MB');
+};
+
+```
+
+If we use -p switch, the code is gone.
+
 @xs
